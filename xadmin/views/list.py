@@ -71,8 +71,6 @@ class ResultItem(object):
             self.text) if self.allow_tags else conditional_escape(self.text)
         if force_text(text) == '':
             text = mark_safe('&nbsp;')
-        for wrap in self.wraps:
-            text = mark_safe(wrap % text)
         if self.list_display_links_details:
             item_res_uri = self.model_admin_url("detail", getattr(obj, self.pk_attname))
             if item_res_uri:
