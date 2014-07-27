@@ -10,7 +10,6 @@ if sys.version_info.major < 3:
 else:
    from django.utils.encoding import force_text, smart_text
 from django.utils.html import escape, conditional_escape
-from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
@@ -53,6 +52,7 @@ class ResultItem(object):
     def __init__(self, field_name, row):
         self.classes = []
         self.text = '&nbsp;'
+        self.wraps = []
         self.tag = 'td'
         self.tag_attrs = []
         self.allow_tags = False
@@ -71,15 +71,8 @@ class ResultItem(object):
             self.text) if self.allow_tags else conditional_escape(self.text)
         if force_text(text) == '':
             text = mark_safe('&nbsp;')
-        if self.list_display_links_details:
-            item_res_uri = self.model_admin_url("detail", getattr(obj, self.pk_attname))
-            if item_res_uri:
-                edit_url = self.model_admin_url("change", getattr(obj, self.pk_attname))
-                text = mark_safe('<a data-res-uri="%s" data-edit-uri="%s" class="details-handler" rel="tooltip" title="%s">%s</a>'
-                                  % (item_res_uri, edit_url, _(u'Details of %s') % str(obj), text))
-            else:
-                url = self.url_for_result(obj)
-                text = mark_safe(u'<a href="%s">%s</a>' % (urlquote(url), text))
+        for wrap in self.wraps:
+            text = mark_safe(wrap % text)
         return text
 
     @property
@@ -579,7 +572,15 @@ class ListAdminView(ModelAdminView):
                 or field_name in self.list_display_links:
             item.row['is_display_first'] = False
             item.is_display_link = True
-
+            if self.list_display_links_details:
+                item_res_uri = self.model_admin_url("detail", getattr(obj, self.pk_attname))
+                if item_res_uri:
+                    edit_url = self.model_admin_url("change", getattr(obj, self.pk_attname))
+                    item.wraps.append('<a data-res-uri="%s" data-edit-uri="%s" class="details-handler" rel="tooltip" title="%s">%%s</a>'
+                                     % (item_res_uri, edit_url, _(u'Details of %s') % str(obj)))
+            else:
+                url = self.url_for_result(obj)
+                item.wraps.append(u'<a href="%s">%%s</a>' % url)
 
         return item
 
