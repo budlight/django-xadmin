@@ -10,6 +10,7 @@ if sys.version_info.major < 3:
 else:
    from django.utils.encoding import force_text, smart_text
 from django.utils.html import escape, conditional_escape
+from django.utils.http import urlquote
 from django.utils.safestring import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
@@ -580,7 +581,7 @@ class ListAdminView(ModelAdminView):
                                      % (item_res_uri, edit_url, _(u'Details of %s') % str(obj)))
             else:
                 url = self.url_for_result(obj)
-                item.wraps.append(u'<a href="%s">%%s</a>' % url)
+                item.wraps.append(u'<a href="%s">%%s</a>' % urlquote(url))
 
         return item
 
